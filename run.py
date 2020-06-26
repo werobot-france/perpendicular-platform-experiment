@@ -6,9 +6,9 @@ def onChange(x, y, theta):
   print(x, y, math.degrees(theta))
   
 instance = w.PositionWatcher()
-instance.setOnPositionChangedHandler(onChange)
+#instance.setOnPositionChangedHandler(onChange)
 instance.start()
 
-# while True:
-#   print(instance.getTicks())
-#   time.sleep(0.2)
+while (True):
+    print(instance.getPosRot())
+    time.sleep(0.2)

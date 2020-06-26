@@ -3,6 +3,10 @@ from threading import Thread
 from time import sleep
 from math import *
 
+from time import sleep
+from BMI160_i2c import Driver
+
+
 class PositionWatcher:
     perimeter = 60*pi
     theta = pi / 2
@@ -11,12 +15,12 @@ class PositionWatcher:
     y = 0
     
     # left
-    phaseA = DigitalInputDevice(17, True)
-    phaseB = DigitalInputDevice(27, True)
+    phaseA = DigitalInputDevice(6, True)
+    phaseB = DigitalInputDevice(16, True)
     
     # right
-    phaseC = DigitalInputDevice(22, True)
-    phaseD = DigitalInputDevice(23, True)
+    phaseC = DigitalInputDevice(20, True)
+    phaseD = DigitalInputDevice(21, True)
     
     leftTicks = 0
     rightTicks = 0
@@ -36,9 +40,10 @@ class PositionWatcher:
     onPositionChangedHandler = None
     
     isTurning = False
+
     
-    L = 103.4
-    l = 210
+    L = 120
+    l = 161
     
     def watchTicks(self):
         while self.enabled:
@@ -79,16 +84,24 @@ class PositionWatcher:
                 # t1 = (leftDistance + rightDistance) / 2
                 # alpha = (rightDistance - leftDistance) / self.axialDistance
                 
-                if self.isTurning:
-                  self.theta += (leftDistance/self.l + rightDistance/self.L)/2
-                  #self.theta = (self.theta[0] + leftDistance, self.theta[1] + rightDistance)
-                else:
-                  self.x += sin(self.theta)*rightDistance + cos(self.theta)*leftDistance
-                  self.y += cos(self.theta)*rightDistance + sin(self.theta)*leftDistance
+                self.x += sin(self.theta)*-rightDistance + cos(self.theta)*leftDistance
+                self.y += cos(self.theta)*rightDistance + sin(self.theta)*leftDistance
                 
                 if self.onPositionChangedHandler != None:
                     self.onPositionChangedHandler(self.x, self.y, self.theta)
             sleep(0.01)
+
+
+    def watchOrientation(self):
+        sensor = Driver()
+        sensor.autoCalibrateGyroOffset()
+        print("Gyro - Calibration done!")
+        timeInterval = 0.05
+        self.theta = pi/2
+        while (self.enabled):
+            sleep(timeInterval)
+            self.theta += radians(((sensor.getRotationZ()[0] * 250.0) / 32768.0) * timeInterval)
+
 
     def start(self):
         self.enabled = True
@@ -96,12 +109,21 @@ class PositionWatcher:
         self.watchTicksThread.start()
         self.watchPositionThread = Thread(target=self.watchPosition)
         self.watchPositionThread.start()
+        self.watchOrientationThread = Thread(target=self.watchOrientation)
+        self.watchOrientationThread.start()
         
     def stop(self):
         self.enabled = False
 
     def getPos(self):
         return (self.x, self.y)
+
+    def getPosRot(self):
+        return (self.x, self.y, self.theta * 180/pi)
+
+    def changeIsTurning(self, p):
+        self.isTurning = p
+        return self.isTurning
 
     def getOrientation(self):
         return (self.theta)
