@@ -4,12 +4,13 @@ from time import sleep
 Abstration of motorized platform
 '''
 class MotorizedPlatform:
-  escSlots = {
-    'frontLeft': 15,
-    'frontRight': 12, # 12
-    'backLeft': 14,
-    'backRight': 13 # 13
-  }
+  # escSlots = {
+  #   'frontLeft': 15,
+  #   'frontRight': 12, # 12
+  #   'backLeft': 14,
+  #   'backRight': 13 # 13
+  # }
+  escSlots = [15,12,14,13]
   pwmInterface = None
   
   def __init__(self, pwmInterface = None):
@@ -18,21 +19,27 @@ class MotorizedPlatform:
       self.pwmInterface.set_pwm_freq(50)
       for slot in self.escSlots:
         # 307 est le signal neutre sous 50 Hz (1.5 / 20 x 4096 = 307)
-        self.pwmInterface.set_pwm(self.escSlots[slot], 0, 307)
+        self.pwmInterface.set_pwm(slot, 0, 307)
     else:
       print('> Motorized platform is mocked!!')
       
-  def setSpeed(self, arrayLabelValue):
+  def setSpeed(self, values):
+    for i in range(len(values)):
+      self.pwmInterface.set_pwm(
+        self.escSlots[i],
+        0,
+        self.convertSpeedToEsc(values[i])
+      )
     #print(arrayLabelValue)
-    if self.pwmInterface != None:
-      for label in arrayLabelValue:
-        self.pwmInterface.set_pwm(
-          self.escSlots[label],
-          0, 
-          self.convertSpeedToEsc(arrayLabelValue[label])
-        )
-    else:
-      print(arrayLabelValue)
+    # if self.pwmInterface != None:
+    #   for label in arrayLabelValue:
+    #     self.pwmInterface.set_pwm(
+    #       self.escSlots[label],
+    #       0, 
+    #       self.convertSpeedToEsc(arrayLabelValue[label])
+    #     )
+    # else:
+    #   print(arrayLabelValue)
 
   # équivalent de la fonction map() de arduino
   def mappyt(self, x, inMin, inMax, outMin, outMax):
@@ -103,10 +110,11 @@ class MotorizedPlatform:
 
   def stop(self):
     #print('STOP ALL')
-    self.setSpeed({
-      'frontLeft': 0,
-      'frontRight': 0,
-      'backLeft': 0,
-      'backRight': 0
-    })
+    # self.setSpeed({
+    #   'frontLeft': 0,
+    #   'frontRight': 0,
+    #   'backLeft': 0,
+    #   'backRight': 0
+    # })
+    self.setSpeed([0, 0, 0, 0])
   

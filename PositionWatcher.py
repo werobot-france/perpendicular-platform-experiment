@@ -40,8 +40,8 @@ class PositionWatcher:
   
   isTurning = False
 
-  L = 120
-  l = 161
+  L = 195
+  l = 215
   
   def watchTicks(self):
     while self.enabled:
@@ -86,7 +86,7 @@ class PositionWatcher:
         
         if self.onPositionChangedHandler != None:
             self.onPositionChangedHandler(self.x, self.y, self.theta)
-      sleep(0.01)
+      #sleep(0.01)
 
   # def watchOrientation(self):
   #   sensor = Driver()

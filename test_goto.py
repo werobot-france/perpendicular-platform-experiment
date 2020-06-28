@@ -18,7 +18,7 @@ def app():
   
   nav = Navigation(platform, positionWatcher)
 
-  nav.goTo(-200, 0)
+  nav.goTo(-400, 1000)
 
 try:
   app()
