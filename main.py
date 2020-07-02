@@ -122,6 +122,9 @@ class Main:
     return motorsSpeed
 
   def goTo(self, targetX, targetY, speed = 30, threshold = 1):
+    minSpeed = 18
+    if speed < minSpeed:
+      speed = minSpeed
     self.done = False
     targetAngle = atan2(targetY, targetX)
     print("> Navigation: going to (x: %(x)f y: %(y)f) with a angle of %(a)f deg" % {
@@ -150,7 +153,7 @@ class Main:
         #print("stringe")
         targetAngle = atan2(targetY - self.y, targetX - self.x)
         #print(str(degrees(targetAngle)) + " new computed angle")
-        b = self.getSpeedFromAngle(targetAngle, speed)
+        b = self.getSpeedFromAngle(targetAngle, self.getPlatformSpeed(dist, speed, minSpeed))
         #print(b)
         self.setSpeed(b)
     
@@ -165,7 +168,13 @@ class Main:
   def stopWatch(self):
     self.enabled = False
     
-  def goToPath(self, path, speed = 40, threshold = 5):
+  def getPlatformSpeed(self, dist, maxSpeed, minSpeed):
+    l = maxSpeed - minSpeed
+    k = 0.04
+    o = 100
+    return (l/(1+exp(-(k*(dist - o))))) + minSpeed
+    
+  def goToPath(self, path, speed = 60, threshold = 5):
     for node in path:
       if len(node) > 2:
         speed = node[2]
@@ -178,16 +187,16 @@ main = Main()
 
 def app():
   main.start()
-  #main.goTo(-400, 1000, 50)
-  main.goToPath([
-    [0, 300],
-    [-300, 300],
-    [-300, 600],
-    [0, 600],
-    [-200, 1100],
-    [-600, 600],
-    [0, 0],
-  ])
+  main.goTo(450, 1100, 70)
+  # main.goToPath([
+  #   [0, 300],
+  #   [-300, 300],
+  #   [-300, 600],
+  #   [0, 600],
+  #   [-200, 1100],
+  #   [-600, 600],
+  #   [0, 0],
+  # ])
   
 
 try:
