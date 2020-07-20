@@ -53,7 +53,7 @@ class Main:
     self.pwmInterface = Adafruit_PCA9685.PCA9685()
     self.pwmInterface.set_pwm_freq(50)
     self.setSpeed([0, 0, 0, 0])
-    sleep(0.1)
+    sleep(0.5)
   
   def watchTicks(self):
     while self.enabled:
@@ -121,8 +121,8 @@ class Main:
     
     return motorsSpeed
 
-  def goTo(self, targetX, targetY, speed = 30, threshold = 1):
-    minSpeed = 18
+  def goTo(self, targetX, targetY, speed = 30, threshold = 5):
+    minSpeed = 25
     if speed < minSpeed:
       speed = minSpeed
     self.done = False
@@ -132,7 +132,8 @@ class Main:
       'y': targetY,
       'a': degrees(targetAngle)
     })
-    self.setSpeed(self.getSpeedFromAngle(targetAngle, speed))
+    #self.setSpeed(self.getSpeedFromAngle(targetAngle, speed))
+    initialDist = None
     while not self.done:
       newTicks = (self.leftTicks, self.rightTicks)
       deltaTicks = (newTicks[0] - self.oldTicks[0], newTicks[1] - self.oldTicks[1])
@@ -147,13 +148,17 @@ class Main:
       #dist = hypot(targetX - self.positionWatcher.x, targetY - self.positionWatcher.y)
       dist = sqrt((targetX - self.x)**2 + (targetY - self.y)**2)
       print(round(self.x, 0), round(self.y, 0), round(dist, 0))
+      if initialDist == None:
+        initialDist = dist
       if dist <= threshold:
         self.done = True
       else:
         #print("stringe")
         targetAngle = atan2(targetY - self.y, targetX - self.x)
         #print(str(degrees(targetAngle)) + " new computed angle")
-        b = self.getSpeedFromAngle(targetAngle, self.getPlatformSpeed(dist, speed, minSpeed))
+        s = self.getPlatformSpeed(initialDist, dist, speed, minSpeed)
+        print("speed", s)
+        b = self.getSpeedFromAngle(targetAngle, s)
         #print(b)
         self.setSpeed(b)
     
@@ -168,35 +173,62 @@ class Main:
   def stopWatch(self):
     self.enabled = False
     
-  def getPlatformSpeed(self, dist, maxSpeed, minSpeed):
-    l = maxSpeed - minSpeed
-    k = 0.04
-    o = 100
-    return (l/(1+exp(-(k*(dist - o))))) + minSpeed
-    
-  def goToPath(self, path, speed = 60, threshold = 5):
+  def getPlatformSpeed(self, initialDist, dist, maxSpeed, minSpeed):
+    p = abs(initialDist - dist)
+    if p <= 25:
+      return self.saturation(0, 25, minSpeed, maxSpeed, p)
+    else:
+      l = maxSpeed - minSpeed
+      k = 0.04
+      o = 100
+      return (l/(1+exp(-(k*(dist - o))))) + minSpeed
+      
+  
+  def saturation(self, minX, maxX, minY, maxY, value):
+    # minX = 10*10
+    # maxX = 100*10
+    # minY = 10
+    # maxY = 100
+    minX *= 10
+    maxX *= 10
+    if value <= minX:
+      print('Very start thing case')
+      return minY
+    elif value >= maxX:
+      print('Normal cruise')
+      return maxY
+    else:
+      print('Start thing case')
+      a = (maxY-minY)/(maxX - minX)
+      b = minY - a*minX
+      return a * value + b
+
+  def goToPath(self, path, speed = 80, threshold = 5):
     for node in path:
       if len(node) > 2:
         speed = node[2]
       if len(node) > 3:
         threshold = node[3]
       self.goTo(node[0], node[1], speed, threshold)
-      sleep(2)
+      sleep(0.8)
 
 main = Main()
 
 def app():
   main.start()
-  main.goTo(450, 1100, 70)
-  # main.goToPath([
-  #   [0, 300],
-  #   [-300, 300],
-  #   [-300, 600],
-  #   [0, 600],
-  #   [-200, 1100],
-  #   [-600, 600],
-  #   [0, 0],
-  # ])
+  
+  
+  #main.goTo(450, 1100, 70)
+  #main.goTo(-300, 600, 70)
+  main.goToPath([
+    [0, 300],
+    [-300, 300],
+    [-300, 600],
+    [0, 600],
+    [-200, 1100],
+    [-600, 600],
+    [0, 0],
+  ])
   
 
 try:

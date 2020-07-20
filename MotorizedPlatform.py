@@ -6,9 +6,9 @@ Abstration of motorized platform
 class MotorizedPlatform:
   # escSlots = {
   #   'frontLeft': 15,
-  #   'frontRight': 12, # 12
+  #   'frontRight': 12,
   #   'backLeft': 14,
-  #   'backRight': 13 # 13
+  #   'backRight': 13
   # }
   escSlots = [15,12,14,13]
   pwmInterface = None
