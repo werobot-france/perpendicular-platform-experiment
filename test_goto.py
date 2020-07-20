@@ -11,14 +11,14 @@ positionWatcher = PositionWatcher()
 
 def app():  
   platform.stop()
-  sleep(0.2)
+  sleep(1.5)
   
   positionWatcher.start()
   print('started position watcher')
   
   nav = Navigation(platform, positionWatcher)
 
-  nav.goTo(-400, 400)
+  nav.goTo(300, -300)
 
 try:
   app()

@@ -8,24 +8,13 @@ class Navigation:
     self.enabled = False
 
   def getSpeedFromAngle(self, targetAngle, speed):
-    marks = [0, pi/2, pi, -pi/2]
-    cmds = [
-      [ 1,  1,  1,  1], # east
-      [ 1, -1, -1,  1], # north
-      [-1, -1, -1, -1], # west
-      [-1,  1,  1, -1]  # south
-    ]
-    motorsSpeed = []
-    for n in range(4):
-      s = 0
-      for i in range(4):
-        coef = cos(abs(targetAngle - marks[i]))
-        s += cmds[i][n] * coef * speed
-      s /= 4
-      s = round(s, 3)
-      if s == 0: s = 0
-      motorsSpeed.append(s)
-    return motorsSpeed
+    return [
+        cos(targetAngle+3*pi/4) * -speed,
+        sin(targetAngle+3*pi/4) * speed,
+        sin(targetAngle+3*pi/4) * speed,
+        cos(targetAngle+3*pi/4) * -speed,
+        ]
+
 
   def getPlatformSpeed(self, initialDist, dist, maxSpeed, minSpeed):
     p = abs(initialDist - dist)
@@ -56,9 +45,9 @@ class Navigation:
       b = minY - a*minX
       return a * value + b
 
-  def goTo(self, targetX, targetY, speed = 30, threshold = 5):
+  def goTo(self, targetX, targetY, speed = 50, threshold = 5):
     if not self.positionWatcher.isEnabled():
-      positionWatcher.start()
+      self.positionWatcher.start()
 
     minSpeed = 25
     if speed < minSpeed:
@@ -74,21 +63,28 @@ class Navigation:
     initialDist = None
     while not self.done:
       x, y, theta = self.positionWatcher.computePosition()
-      dist = sqrt((targetX - self.x)**2 + (targetY - self.y)**2)
-      print(round(self.x, 0), round(self.y, 0), round(dist, 0))
+      dist = sqrt((targetX - x)**2 + (targetY - y)**2)
+
+      print("\n\nx:", round(x, 0))
+      print("y:", round(y, 0))
+      print("orientation:", round(degrees(theta), 0))
 
       if initialDist == None:
         initialDist = dist
       if dist <= threshold:
         self.done = True
       else:
-        targetAngle = atan2(targetY - self.y, targetX - self.x)
-        #print(str(degrees(targetAngle)) + " new computed angle")
-        s = self.getPlatformSpeed(initialDist, dist, speed, minSpeed)
+        targetAngle = atan2(targetY - y, targetX - x)
+        print(str(degrees(targetAngle)) + " new computed angle")
+        #s = self.getPlatformSpeed(initialDist, dist, speed, minSpeed)
+        s = 50
         #print("speed", s)
         b = self.getSpeedFromAngle(targetAngle, s)
-        #print(b)
-        self.setSpeed(b)
+        print("\nMotors:", b, "\n\n\n\n")
+        self.platform.setSpeed(b)
+    
+    self.platform.stop()
+    print('End of goTo')
 
   def goToPath(self, path, speed = 80, threshold = 5):
     for node in path:
@@ -99,6 +95,6 @@ class Navigation:
       self.goTo(node[0], node[1], speed, threshold)
       sleep(0.8)
 
-    self.stop()
+    self.platform.stop()
     print('Done')
   

@@ -45,10 +45,10 @@ class PositionWatcher:
   oldTicks = (0, 0, 0)
 
   # distance entre les deux encodeurs latéraux (milieux) (arrête de la base)
-  axialDistance = 300
+  axialDistance = 280
   
   # distance entre l'encodeur arrirère et la droite qui passe par les deux encodeurs latéraux
-  backAxialDistance = 96
+  backAxialDistance = 110
 
   def __init__(self):
     print("Pos watcher init")
@@ -60,7 +60,7 @@ class PositionWatcher:
       backFetchedState = (self.phaseE.value, self.phaseF.value)
       if leftFetchedState != self.leftState:
         self.leftState = leftFetchedState
-        
+
         if self.leftState[0] == self.leftOldState[1]:
           self.leftTicks -= 1
         else:
@@ -100,17 +100,18 @@ class PositionWatcher:
       
       leftDistance = deltaTicks[0] / 2400 * self.lateralPerimeter
       rightDistance = deltaTicks[1] / 2400 * self.lateralPerimeter
+      backDistance = deltaTicks[2] / 2400 * self.backPerimeter 
+
+      #deltaTheta = 2 * asin((rightDistance - tb) / self.axialDistance)
+      deltaTheta = (rightDistance - leftDistance) / self.axialDistance
       
       tb = (leftDistance + rightDistance) / 2
-      deltaTheta = 2 * asin((rightDistance - tb) / self.axialDistance)
-      corr = deltaTheta*self.backAxialDistance
-      
-      backDistance = deltaTicks[2] / 2400 * self.backPerimeter - corr
+      backDistance -= deltaTheta*self.backAxialDistance
       
       self.theta += deltaTheta
       
-      self.x += sin(self.theta)*backDistance + cos(self.theta)*tb
-      self.y += cos(self.theta)*backDistance + sin(self.theta)*tb
+      self.x += cos(self.theta)*tb + sin(self.theta)*backDistance
+      self.y += sin(self.theta)*tb + cos(self.theta)*backDistance
 
     return (self.x, self.y, self.theta)
 
