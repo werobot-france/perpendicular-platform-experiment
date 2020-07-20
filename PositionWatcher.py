@@ -10,7 +10,6 @@ class PositionWatcher:
   backPerimeter = 90*pi
   lateralPerimeter = 60*pi
   theta = pi / 2
-  #theta = (0, 0)
   x = 0
   y = 0
   
@@ -44,14 +43,7 @@ class PositionWatcher:
   enabled = True
   
   oldTicks = (0, 0, 0)
-  
-  onPositionChangedHandler = None
-  
-  isTurning = False
 
-  L = 140
-  l = 215
-  
   # distance entre les deux encodeurs latéraux (milieux) (arrête de la base)
   axialDistance = 300
   
@@ -106,7 +98,6 @@ class PositionWatcher:
       )
       self.oldTicks = newTicks
       
-      
       leftDistance = deltaTicks[0] / 2400 * self.lateralPerimeter
       rightDistance = deltaTicks[1] / 2400 * self.lateralPerimeter
       
@@ -116,42 +107,23 @@ class PositionWatcher:
       
       backDistance = deltaTicks[2] / 2400 * self.backPerimeter - corr
       
-      
       self.theta += deltaTheta
       
       self.x += sin(self.theta)*backDistance + cos(self.theta)*tb
       self.y += cos(self.theta)*backDistance + sin(self.theta)*tb
-    return(self.x, self.y, self.theta)
 
-  def start(self, startPos = True):
+    return (self.x, self.y, self.theta)
+
+  def start(self):
     self.enabled = True
     self.watchTicksThread = Thread(target=self.watchTicks)
     self.watchTicksThread.start()
-    if startPos:
-      self.watchPositionThread = Thread(target=self.watchPosition)
-      self.watchPositionThread.start()
+
+  def isEnabled(self):
+    return self.enabled
       
   def stop(self):
     self.enabled = False
-
-  def getPos(self):
-    return (self.x, self.y)
-
-  def getPosRot(self):
-    return (self.x, self.y, self.theta * 180/pi)
-
-  def changeIsTurning(self, p):
-    self.isTurning = p
-    return self.isTurning
-
-  def getOrientation(self):
-    return (self.theta)
-
-  def getOrientationDeg(self):
-    return (self.theta * 180/pi)
-    
-  def setOnPositionChangedHandler(self, handler):
-    self.onPositionChangedHandler = handler
 
   def getTicks(self):
     return [self.leftTicks, self.rightTicks, self.backTicks]

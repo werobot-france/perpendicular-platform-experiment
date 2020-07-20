@@ -118,7 +118,6 @@ class Main:
       s = round(s, 3)
       if s == 0: s = 0
       motorsSpeed.append(s)
-    
     return motorsSpeed
 
   def goTo(self, targetX, targetY, speed = 30, threshold = 5):
