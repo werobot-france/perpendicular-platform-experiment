@@ -14,15 +14,15 @@ class PositionWatcher:
   x = 0
   y = 0
   
-  # left (scotch bleu)
+  # left (scotch bleu) encodeur branché sur la prise du milieur
   phaseA = DigitalInputDevice(20, True)
   phaseB = DigitalInputDevice(21, True)
   
-  # right
-  phaseC = DigitalInputDevice(6, True)
-  phaseD = DigitalInputDevice(16, True)
+  # right (sans scotch) encodeur branché côté carte sd
+  phaseC = DigitalInputDevice(16, True)
+  phaseD = DigitalInputDevice(6, True)
 
-  # back  (scotch vert)
+  # back  (scotch vert) encodeur branché coté port USB
   phaseE = DigitalInputDevice(5, True)
   phaseF = DigitalInputDevice(19, True)
   
@@ -51,6 +51,12 @@ class PositionWatcher:
 
   L = 140
   l = 215
+  
+  # distance entre les deux encodeurs latéraux (milieux) (arrête de la base)
+  axialDistance = 300
+  
+  # distance entre l'encodeur arrirère et la droite qui passe par les deux encodeurs latéraux
+  backAxialDistance = 96
 
   def __init__(self):
     print("Pos watcher init")
@@ -90,37 +96,40 @@ class PositionWatcher:
 
         self.backOldState = self.backState
 
-  def watchPosition(self):
-    while self.enabled:
-      newTicks = (self.leftTicks, self.rightTicks, self.backTicks)
-      if (newTicks != self.oldTicks):
-        deltaTicks = (newTicks[0] - self.oldTicks[0],
-                      newTicks[1] - self.oldTicks[1],
-                      newTicks[2] - self.oldTicks[2],
-                      )
-        self.oldTicks = newTicks
-        leftDistance = deltaTicks[0] / 2400 * self.lateralPerimeter
-        rightDistance = deltaTicks[1] / 2400 * self.lateralPerimeter
-        backDistance = deltaTicks[2] / 2400 * self.backPerimeter
-        
-        #self.x += sin(self.theta)*-rightDistance + cos(self.theta)*leftDistance
-        #self.y += cos(self.theta)*rightDistance + sin(self.theta)*leftDistance
-        t1 = (leftDistance + rightDistance) / 2
-        alpha = (rightDistance - leftDistance) / self.l * 2
-        self.theta = self.theta + alpha
-        self.x = self.x + t1 * cos(self.theta)  #+ (backDistance - self.L*alpha) * cos(self.theta)
-        self.y = self.y + t1 * sin(self.theta)  #+ (backDistance - self.L*alpha) * sin(self.theta)
+  def computePosition(self):
+    newTicks = (self.leftTicks, self.rightTicks, self.backTicks)
+    if (newTicks != self.oldTicks):
+      deltaTicks = (
+        newTicks[0] - self.oldTicks[0],
+        newTicks[1] - self.oldTicks[1],
+        newTicks[2] - self.oldTicks[2]
+      )
+      self.oldTicks = newTicks
+      
+      
+      leftDistance = deltaTicks[0] / 2400 * self.lateralPerimeter
+      rightDistance = deltaTicks[1] / 2400 * self.lateralPerimeter
+      
+      tb = (leftDistance + rightDistance) / 2
+      deltaTheta = 2 * asin((rightDistance - tb) / self.axialDistance)
+      corr = deltaTheta*self.backAxialDistance
+      
+      backDistance = deltaTicks[2] / 2400 * self.backPerimeter - corr
+      
+      
+      self.theta += deltaTheta
+      
+      self.x += sin(self.theta)*backDistance + cos(self.theta)*tb
+      self.y += cos(self.theta)*backDistance + sin(self.theta)*tb
+    return(self.x, self.y, self.theta)
 
-        if self.onPositionChangedHandler != None:
-            self.onPositionChangedHandler(self.x, self.y, self.theta)
-
-
-  def start(self):
+  def start(self, startPos = True):
     self.enabled = True
     self.watchTicksThread = Thread(target=self.watchTicks)
     self.watchTicksThread.start()
-    self.watchPositionThread = Thread(target=self.watchPosition)
-    self.watchPositionThread.start()
+    if startPos:
+      self.watchPositionThread = Thread(target=self.watchPosition)
+      self.watchPositionThread.start()
       
   def stop(self):
     self.enabled = False
@@ -145,4 +154,4 @@ class PositionWatcher:
     self.onPositionChangedHandler = handler
 
   def getTicks(self):
-    return [self.leftTicks, self.rightTicks]
+    return [self.leftTicks, self.rightTicks, self.backTicks]

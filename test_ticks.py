@@ -3,14 +3,12 @@ import math
 import time
 import sys
 
-def onChange(x, y, theta, tb):
-  print(round(x, 0), round(y, 0), round(math.degrees(theta), 0), tb)
-
 instance = w.PositionWatcher()
-  
 def app():
-  instance.setOnPositionChangedHandler(onChange)
-  instance.start()
+  instance.start(False)
+  while True:
+    print(instance.getTicks())
+    time.sleep(0.1)
 
 try:
   app()
