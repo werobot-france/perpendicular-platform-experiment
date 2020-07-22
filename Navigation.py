@@ -8,11 +8,12 @@ class Navigation:
     self.enabled = False
 
   def getSpeedFromAngle(self, targetAngle, speed):
+    ta = pi - (targetAngle - self.positionWatcher.theta)
     return [
-        cos(targetAngle+3*pi/4) * -speed,
-        sin(targetAngle+3*pi/4) * speed,
-        sin(targetAngle+3*pi/4) * speed,
-        cos(targetAngle+3*pi/4) * -speed,
+        cos(ta+3*pi/4) * speed,
+        sin(ta+3*pi/4) * speed,
+        sin(ta+3*pi/4) * speed,
+        cos(ta+3*pi/4) * speed,
         ]
 
 
@@ -67,17 +68,16 @@ class Navigation:
 
       print("\n\nx:", round(x, 0))
       print("y:", round(y, 0))
-      print("orientation:", round(degrees(theta), 0))
+      print("theta:", round(degrees(theta), 0))
 
       if initialDist == None:
         initialDist = dist
       if dist <= threshold:
         self.done = True
       else:
-        targetAngle = atan2(targetY - y, targetX - x)
-        print(str(degrees(targetAngle)) + " new computed angle")
-        #s = self.getPlatformSpeed(initialDist, dist, speed, minSpeed)
-        s = 50
+        targetAngle = (atan2(targetY - y, targetX - x))%(2*pi)
+        print("targetAngle:", round(degrees(targetAngle), 2))
+        s = self.getPlatformSpeed(initialDist, dist, speed, minSpeed)
         #print("speed", s)
         b = self.getSpeedFromAngle(targetAngle, s)
         print("\nMotors:", b, "\n\n\n\n")

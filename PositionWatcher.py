@@ -9,7 +9,7 @@ from BMI160_i2c import Driver
 class PositionWatcher:
   backPerimeter = 90*pi
   lateralPerimeter = 60*pi
-  theta = pi / 2
+  theta = 3*pi/2
   x = 0
   y = 0
   
@@ -108,10 +108,12 @@ class PositionWatcher:
       tb = (leftDistance + rightDistance) / 2
       backDistance -= deltaTheta*self.backAxialDistance
       
-      self.theta += deltaTheta
       
       self.x += cos(self.theta)*tb + sin(self.theta)*backDistance
-      self.y += sin(self.theta)*tb + cos(self.theta)*backDistance
+      self.y += sin(self.theta)*tb - cos(self.theta)*backDistance
+
+      
+      self.theta += deltaTheta
 
     return (self.x, self.y, self.theta)
 
