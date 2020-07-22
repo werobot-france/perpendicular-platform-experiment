@@ -86,6 +86,24 @@ class Navigation:
     self.platform.stop()
     print('End of goTo')
 
+
+  def orientTo(self, orientation, speed=30, threshold=pi/32):
+    theta = self.positionWatcher.computePosition()[2]
+    while abs(theta - orientation) > threshold:
+      theta = self.positionWatcher.computePosition()[2]
+      c = (theta - orientation)/abs(theta - orientation)
+      speeds = [
+        c*speed,
+        c*speed,
+        -c*speed,
+        -c*speed
+      ]
+      self.platform.setSpeed(speeds)
+      print("\n\nc:", c)
+      print("deltaOrientation:", theta - orientation)
+    self.platform.stop()
+    print('End of orientTo')
+
   def goToPath(self, path, speed = 80, threshold = 5):
     for node in path:
       if len(node) > 2:

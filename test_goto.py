@@ -1,4 +1,5 @@
 import sys
+from math import *
 from MotorizedPlatform import MotorizedPlatform
 from Navigation import Navigation
 from PositionWatcher import PositionWatcher
@@ -18,7 +19,8 @@ def app():
   
   nav = Navigation(platform, positionWatcher)
 
-  nav.goTo(-300, 300)
+  #nav.goTo(-600, 600)
+  nav.orientTo(pi)
 
 try:
   app()
