@@ -19,8 +19,7 @@ def app():
   
   nav = Navigation(platform, positionWatcher)
 
-  #nav.goTo(-600, 600)
-  nav.orientTo(pi)
+  nav.goTo(-600, 600, orientation=3*pi/2)
 
 try:
   app()

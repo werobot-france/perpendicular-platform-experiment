@@ -108,10 +108,9 @@ class PositionWatcher:
       tb = (leftDistance + rightDistance) / 2
       backDistance -= deltaTheta*self.backAxialDistance
       
-      self.theta += deltaTheta
-      
       self.x += cos(self.theta)*tb + sin(self.theta)*backDistance
       self.y += sin(self.theta)*tb - cos(self.theta)*backDistance
+      self.theta += deltaTheta
 
 
     return (self.x, self.y, self.theta)

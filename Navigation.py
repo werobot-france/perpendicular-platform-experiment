@@ -46,7 +46,7 @@ class Navigation:
       b = minY - a*minX
       return a * value + b
 
-  def goTo(self, targetX, targetY, speed = 50, threshold = 5):
+  def goTo(self, targetX, targetY, speed=50, threshold=5, orientation=None):
     if not self.positionWatcher.isEnabled():
       self.positionWatcher.start()
 
@@ -80,7 +80,23 @@ class Navigation:
         s = self.getPlatformSpeed(initialDist, dist, speed, minSpeed)
         #print("speed", s)
         b = self.getSpeedFromAngle(targetAngle, s)
-        print("\nMotors:", b, "\n\n\n\n")
+
+        if orientation != None:
+          c = (theta - orientation)/2*pi
+          if abs(c*speed) <= speed/4:
+            cmd = c*speed
+          else:
+            cmd = speed/4*c/abs(c)
+          cmds = [
+            cmd,
+            cmd,
+            -cmd,
+            -cmd
+          ]
+          for i in range(4):
+            b[i] += cmds[i]
+            
+        #print("\nMotors:", b, "\n\n\n\n")
         self.platform.setSpeed(b)
     
     self.platform.stop()
