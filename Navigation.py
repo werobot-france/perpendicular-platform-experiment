@@ -102,6 +102,11 @@ class Navigation:
     self.platform.stop()
     print('End of goTo')
 
+  def relativeGoTo(self, targetDeltaX, targetDeltaY, speed=50, threshold=5, orientation=None):
+    x, y, theta = self.positionWatcher.computePosition()
+    targetX = x + cos(theta)*targetDeltaX + sin(theta)*targetDeltaY
+    targetY = y + sin(theta)*targetDeltaX + cos(theta)*targetDeltaY
+    self.goTo(targetX, targetY, speed, threshold, orientation)
 
   def orientTo(self, orientation, speed=30, threshold=pi/32):
     theta = self.positionWatcher.computePosition()[2]
